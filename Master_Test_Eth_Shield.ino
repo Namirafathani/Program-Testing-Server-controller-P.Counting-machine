@@ -1,4 +1,4 @@
-/*
+ /*
 Author  : namirafathani
 Date    : 18/03/2020
 */
@@ -426,7 +426,10 @@ void showData(){
     status_S1 = 0;
     data_S1++;
     Serial.println(data_S1);
+    errorCheck_S1 = 0; 
     prefix_A = false;
+
+    // adding some program to generate error when emergency button is change
 
     // processing data
      if(diffData_S1<0){
@@ -461,6 +464,7 @@ void showData(){
       status_S2 = 0;
       data_S2++;
       Serial.println(data_S2);
+      errorCheck_S2 = 0;
       prefix_B = false;
 
       // Processing Data
@@ -744,10 +748,18 @@ void loop(){
 //=========================================================|   Digital ISR    |=============================================================//                                         
 //==========================================================================================================================================//
 void executeFlagrestart(){
-  if(digitalRead(EMG_BUTTON) == LOW){
+  if(digitalRead(EMG_BUTTON == LOW)){
+    errorCheck_S1+2;
+    errorCheck_S2+2;
+
     digitalWrite(EMG_LED, HIGH);
     trig_publishFlagRestart = true;
   }
+  
+  // if(digitalRead(EMG_BUTTON) == LOW){
+  //   digitalWrite(EMG_LED, HIGH);
+  //   trig_publishFlagRestart = true;
+  // }
 }
 
 //==========================================================================================================================================//
