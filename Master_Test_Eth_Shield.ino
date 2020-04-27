@@ -20,7 +20,8 @@ Date    : 18/03/2020
 #define timer2 10000                                // timer send command to sensor module 2
 
 #define EMG_BUTTON 2                                // define Emergency Button 
-#define EMG_LED 3
+#define STOP_ERROR 3
+#define EMG_LED 34
 #define COM1 32                                     // define LED communication slave1
 #define COM2 33                                     // define LED communication slave2 
 
@@ -90,7 +91,6 @@ bool trig_publishFlagRestart = false;
 int statusReply = 0;
 
 int flagerror = 0;
-
 
 //==========================================================================================================================================//
 //=========================================================|   Procedure reconnect    |=====================================================//                                         
@@ -396,9 +396,11 @@ void sendCommand(){
         //Serial3.print("S_1\n");
         if(errorCheck_S1==3){
           prefix_A = false;
-        }
-        else{
+          errorData1();
+        } else{
+        if(errorCheck_S1 == 0){
             prefix_A = true;
+        }
         }
     } else {
         if(currentMillis - previousMillis == timer2){
@@ -412,11 +414,13 @@ void sendCommand(){
             //Serial3.print("S_2\n");
          if(errorCheck_S2==3){
           prefix_B = false;
-        }
-        else{
+          errorData2();
+        }else{
+        if(errorCheck_S2 == 0){
             prefix_B = true;
         }
         } 
+        }
     }
 }
 
@@ -610,7 +614,7 @@ void showData(){
 //==========================================================================================================================================//
 //==================================================|     Procedure error data        |=====================================================//                                         
 //==========================================================================================================================================//
-void errorData(){
+void errorData1(){
   if(errorCheck_S1 == 3){
     status_S1 = 1;
     data_S1 = 0;
@@ -632,6 +636,9 @@ void errorData(){
     Serial.println("=========================");
     Serial.println(" ");
   }
+}
+
+void errorData2(){
   if(errorCheck_S2 == 3){
     status_S2 = 1;
     data_S2 = 0;
@@ -755,6 +762,7 @@ void setup(){
     pinMode(COM1, OUTPUT);
     pinMode(COM2, OUTPUT);
     pinMode(EMG_BUTTON, INPUT_PULLUP);
+    pinMode (STOP_ERROR, INPUT_PULLUP);
     
     /* Callibration RTC module with NTP Server */
     Wire.begin();
@@ -779,6 +787,7 @@ void setup(){
 
     /* attachInterrupt Here */
     attachInterrupt(digitalPinToInterrupt(EMG_BUTTON), executeFlagrestart, LOW);
+    attachInterrupt(digitalPinToInterrupt(STOP_ERROR), executeFlagrestop, LOW);
 }
 
 
@@ -791,7 +800,7 @@ void loop(){
     syncDataTimeRTC();
     sendCommand();
     showData();
-    errorData();
+    
     if(trig_publishFlagRestart){
        trig_publishFlagRestart = false;
         publishFlagRestart();
@@ -807,11 +816,6 @@ void executeFlagrestart(){
   if(digitalRead(EMG_BUTTON == LOW)){
     errorCheck_S1 = 3;
     errorCheck_S2 = 3;
-    prefix_A = false;
-    prefix_B = false;
-
-    flagerror++;
-
     digitalWrite(EMG_LED, HIGH);
     trig_publishFlagRestart = true;
   }
@@ -822,6 +826,14 @@ void executeFlagrestart(){
   // }
 }
 
+void executeFlagrestop(){
+  if(digitalRead(STOP_ERROR == LOW)){
+    errorCheck_S1 = 0;
+    errorCheck_S2 = 0;
+    // digitalWrite(EMG_LED, HIGH);
+    // trig_publishFlagRestart = true;
+  }
+}
 //==========================================================================================================================================//
 //==========================================================|   Serial ISR    |=============================================================//                                         
 //==========================================================================================================================================//
