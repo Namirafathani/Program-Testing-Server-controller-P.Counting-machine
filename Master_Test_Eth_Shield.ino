@@ -30,7 +30,7 @@ RTC_DS1307 RTC;                                     // Define type RTC as RTC_DS
 /* configur etheret communication */
 byte mac[]  = {0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0xED };                // MAC Address by see sticker on Arduino Etherent Shield or self determine
 IPAddress ip(192, 168, 0, 110);                                     // IP ethernet shield assigned, in one class over the server
-IPAddress server(192, 168, 0, 106);                                 // IP LAN (Set ststic IP in PC/Server)
+IPAddress server(192, 168, 0, 103);                                 // IP LAN (Set ststic IP in PC/Server)
 // IPAddress ip(192, 168, 50, 8);                                     // IP ethernet shield assigned, in one class over the server
 // IPAddress server(192, 168, 50, 7);                                 // IP LAN (Set ststic IP in PC/Server)
 int portServer = 1883;                                              // Determine portServer MQTT connection
@@ -88,6 +88,9 @@ bool replySubscribe = false;
 bool trig_publishFlagRestart = false;
 
 int statusReply = 0;
+
+int flagerror = 0;
+
 
 //==========================================================================================================================================//
 //=========================================================|   Procedure reconnect    |=====================================================//                                         
@@ -153,7 +156,7 @@ void publishData_S1(){
   Serial.println(data_S1);                                                              // line debugging
   #endif
 
-  //RTCprint();                                                                           // Call procedure sync time RTC
+  RTCprint();                                                                           // Call procedure sync time RTC
 
 /* ArduinoJson create jsonDoc 
 Must be know its have a different function 
@@ -217,7 +220,7 @@ void publishData_S2(){
   Serial.println(data_S2);                                                              // line debugging
   #endif
 
- // RTCprint();                                                                           // Call procedure sync time RTC
+ RTCprint();                                                                           // Call procedure sync time RTC
 
 /* ArduinoJson create jsonDoc 
 Must be know its have a different function 
@@ -391,7 +394,12 @@ void sendCommand(){
         Serial.println("");
         #endif // DEBUG
         //Serial3.print("S_1\n");
-        prefix_A = true;
+        if(errorCheck_S1==3){
+          prefix_A = false;
+        }
+        else{
+            prefix_A = true;
+        }
     } else {
         if(currentMillis - previousMillis == timer2){
            previousMillis = currentMillis;  
@@ -402,7 +410,12 @@ void sendCommand(){
             Serial.println("");
             #endif // DEBUG
             //Serial3.print("S_2\n");
+         if(errorCheck_S2==3){
+          prefix_B = false;
+        }
+        else{
             prefix_B = true;
+        }
         } 
     }
 }
@@ -416,17 +429,17 @@ void showData(){
   int diffData_S2 = 0;
 
   // Show data 1 for server without Serial3
-  if(prefix_A){
+  if(prefix_A==true){
     #ifdef DEBUG
     Serial.println("Prefix_A --OK--");
     Serial.print("data-incoming ");
     #endif
 
     digitalWrite(COM1, HIGH);
-    status_S1 = 0;
+     status_S1 = 0;
+     errorCheck_S1 = 0; 
     data_S1++;
     Serial.println(data_S1);
-    errorCheck_S1 = 0; 
     prefix_A = false;
 
     // adding some program to generate error when emergency button is change
@@ -454,7 +467,7 @@ void showData(){
   }
   else{
     // show data for sensor 2
-    if(prefix_B){
+    if(prefix_B==true){
       #ifdef DEBUG
       Serial.println("Prefix_B -- OK--");
       Serial.print("data-incoming ");
@@ -462,9 +475,9 @@ void showData(){
 
       digitalWrite(COM2, HIGH);
       status_S2 = 0;
+      errorCheck_S2 = 0;
       data_S2++;
       Serial.println(data_S2);
-      errorCheck_S2 = 0;
       prefix_B = false;
 
       // Processing Data
@@ -598,11 +611,13 @@ void showData(){
 //==================================================|     Procedure error data        |=====================================================//                                         
 //==========================================================================================================================================//
 void errorData(){
-  if(trig_publishFlagRestart == true){
-
   if(errorCheck_S1 == 3){
     status_S1 = 1;
-    errorCheck_S1 = 0;
+    data_S1 = 0;
+    // if(flagerror == 2){
+    //   // errorCheck_S1 = 0;
+    //   flagerror=0;
+    // }
     Serial.println("=========================");
     Serial.println("        ERROR !!!        ");
     Serial.print("status S1= ");Serial.println(status_S1); 
@@ -619,7 +634,11 @@ void errorData(){
   }
   if(errorCheck_S2 == 3){
     status_S2 = 1;
-    errorCheck_S2 = 0;
+    data_S2 = 0;
+    // if(flagerror == 2){
+    //   // errorCheck_S2 = 0;
+    //    flagerror = 0;
+    // }
     Serial.println("=========================");
     Serial.println("        ERROR !!!        ");
     Serial.print("status S2= ");Serial.println(status_S2); 
@@ -634,7 +653,6 @@ void errorData(){
     Serial.println("=========================");
     Serial.println(" ");
   }
-}
 }
 //  if((millis() - currentMillis_errorData)>=5000){
 //    currentMillis_errorData = millis();
@@ -789,6 +807,10 @@ void executeFlagrestart(){
   if(digitalRead(EMG_BUTTON == LOW)){
     errorCheck_S1 = 3;
     errorCheck_S2 = 3;
+    prefix_A = false;
+    prefix_B = false;
+
+    flagerror++;
 
     digitalWrite(EMG_LED, HIGH);
     trig_publishFlagRestart = true;
