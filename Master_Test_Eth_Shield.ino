@@ -364,6 +364,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   day = time.substring(9,11).toInt();
   hour = time.substring(12,14).toInt();
   minute = time.substring(15,17).toInt();
+  second = time.substring(18,20).toInt();
 
   #ifdef DEBUG
   Serial.print("serverLastData_MAC01="); Serial.println(serverLastMAC01);
@@ -511,105 +512,7 @@ void showData(){
   }
 }
 
-  /* Show data for sensor 1 */
-//   if(prefix_A){
-//     if(stringComplete){
-//       #ifdef DEBUG
-//       Serial.println("Prefix_A --OK--");
-//       Serial.print("incomming data= ");Serial.print(incomingData);
-//       #endif
-
-//       digitalWrite(COM1, HIGH);
-//       status_S1 = 0;
-//       /* remove header and footer */
-//       first = incomingData.indexOf('A');                                         // determine indexOf 'A'
-//       last = incomingData.lastIndexOf('/n');                                     // determine lastInndexOf '\n
-
-//       /* Parse incoming data to particular variable */ 
-//       String datasensor1 = incomingData.substring(first, last);                  // substring 
-//       datasensor1.remove(0,1);                                                   // remove header incomming data
-//       datasensor1.remove(datasensor1.length()-1, datasensor1.length() - 0);      // remove fotter incomming data (/n)
-//       data_S1 = datasensor1.toInt();                                             // covert string to integer datasensor1 and save to 'data_S1'
-
-//       stringComplete = false;
-//       prefix_A = false;
-//       incomingData = "";
-
-//       //Processing Data
-//       diffData_S1 = (data_S1 + serverLastData_S1) - (lastData_S1 + serverLastData_S1);
-//       if(diffData_S1<0){
-//         countData_S1 = diffData_S1 + limitData; 
-//       } else {
-//         countData_S1 = diffData_S1;
-//       }
-
-//       // Publish Data
-//       if(replySubscribe){
-//          publishData_S1();
-//       } else {
-//         #ifdef DEBUG
-//         Serial.println("Not reply anyone data !!!");
-//         #endif // DEBUG
-//       } 
-
-//       #ifdef DEBUG
-//       Serial.print("data S1= ");Serial.print(data_S1); 
-//       Serial.print(" | status S1= ");Serial.println(status_S1); 
-//       Serial.println("------------------------------||-------------------------------\n");                                              
-//       #endif //DEBUG
-//       } 
-//   } else {
-//     /* Show data for sensor 2 */
-//     if(prefix_B){
-//       if(stringComplete){
-//       #ifdef DEBUG
-//       Serial.println("Prefix_B --OK--");
-//       Serial.print("incomming data= ");Serial.print(incomingData);
-//       #endif
-
-//       digitalWrite(COM2, HIGH);
-//       status_S2 = 0;
-//       first = incomingData.indexOf('B');                                         // determine indexOf 'A'
-//       last = incomingData.lastIndexOf('/n');                                     // determine lastInndexOf '\n
-//       /* When true value is 0 and false is "-1" */
-
-//       /* Parse incoming data to particular variable */ 
-//       String datasensor2 = incomingData.substring(first, last);                  // substring 
-//       datasensor2.remove(0,1);                                                   // remove header incomming data
-//       datasensor2.remove(datasensor2.length()-1, datasensor2.length() - 0);      // remove fotter incomming data (/n)
-//       data_S2 = datasensor2.toInt();                                             // covert string to integer datasensor1 and save to 'data_S1'
-
-//       stringComplete = false;
-//       prefix_B = false;
-//       incomingData = "";
-
-//       // Processing Data
-//       diffData_S2 = (data_S2 + serverLastData_S2) - (lastData_S2 + serverLastData_S2);
-//       if(diffData_S2<0){
-//         countData_S2 = diffData_S2 + limitData; 
-//       } else {
-//         countData_S2 = diffData_S2;
-//       }
-
-//       // Publish Data
-//       if(replySubscribe){
-//          publishData_S2();
-//       } else {
-//         #ifdef DEBUG
-//         Serial.println("Not reply anyone data !!!");
-//         #endif // DEBUG
-//       } 
-
-//       #ifdef DEBUG
-//       Serial.print("data_S2= ");Serial.print(data_S2); 
-//       Serial.print(" | status S2= ");Serial.println(status_S2); 
-//       Serial.println("------------------------------||-------------------------------\n");                                                  
-//       #endif //DEBUG
-//       } 
-//     } 
-//   }
-// }
-
+ 
 
 //==========================================================================================================================================//
 //==================================================|     Procedure error data        |=====================================================//                                         
@@ -744,7 +647,7 @@ void RTCprint(){
 //==========================================================================================================================================//
 void syncDataTimeRTC(){
   if(timeSubscribe == true){
-    RTC.adjust(DateTime(year, month, day, hour, minute));
+    RTC.adjust(DateTime(year, month, day, hour, minute,second));
     timeSubscribe = false;
   }
 }
